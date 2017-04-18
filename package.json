@@ -1,0 +1,25 @@
+{
+  "name": "oxygendecl",
+  "version": "0.1.0",
+  "description": "",
+  "main": "build/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/losfair/OxygenDecl.git"
+  },
+  "author": "Heyang Zhou",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/losfair/OxygenDecl/issues"
+  },
+  "homepage": "https://github.com/losfair/OxygenDecl#readme",
+  "dependencies": {
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-3": "^6.24.1",
+    "babel-runtime": "^6.23.0"
+  }
+}

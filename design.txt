@@ -1,0 +1,5 @@
+/ => {
+	a => Provider(Alice)
+	b/ => Provider(Bob)
+	c/ => Static(some_path)
+}
