@@ -61,7 +61,6 @@ function do_parse(current, tokens) {
 
     while(tokens.length) {
         const token = tokens.shift();
-        console.log(token);
 
         switch(state) {
             case 0:
