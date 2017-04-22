@@ -13,11 +13,22 @@ export class RouterError {
     }
 }
 
+class URLCacheItem {
+    constructor(url, fn) {
+        this.url = url;
+        this.fn = fn;
+        this.time = Date.now();
+    }
+}
+
 export class Router {
     constructor(config) {
         this.root = null;
         this.providers = new Map();
         this.middlewares = new Map();
+        this.max_url_cache_size = 100;
+        this.url_cache = {};
+        this.debug = false;
 
         if(config instanceof parser.ASTNode) {
             this.root = config;
@@ -42,9 +53,18 @@ export class Router {
         this.middlewares.set(name, fn);
     }
 
-    dispatch(url, context) {
+    dispatch(full_url, context) {
         let current = this.root;
         let handler = null;
+
+        if(this.url_cache[full_url]) {
+            if(this.debug) {
+                console.log("URL cache hit: " + full_url);
+            }
+            return this.url_cache[full_url].fn(context);
+        }
+
+        let url = full_url;
 
         while(url.length) {
             let found = false;
@@ -74,6 +94,29 @@ export class Router {
         if(!handler) {
             throw new RouterError("Unable to find handler");
         }
+
+        if(Object.keys(this.url_cache).length >= this.max_url_cache_size) {
+            if(this.debug) {
+                console.log("Maximum url cache size reached, removing old items");
+                console.log("Before: ");
+                console.log(this.url_cache);
+            }
+            let new_url_cache = {};
+
+            Object.keys(this.url_cache)
+                .sort((a, b) => this.url_cache[a].time - this.url_cache[b].time)
+                .slice(Math.floor(this.max_url_cache_size / 10))
+                .forEach(k => new_url_cache[k] = this.url_cache[k]);
+            
+            this.url_cache = new_url_cache;
+
+            if(this.debug) {
+                console.log("After: ");
+                console.log(this.url_cache);
+            }
+        }
+
+        this.url_cache[full_url] = new URLCacheItem(full_url, handler);
 
         return handler(context);
     }
