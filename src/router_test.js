@@ -3,7 +3,7 @@ import { Router } from "./router.js";
 const router = new Router(`
 / => {
     hello_world => Provider(hello_world_provider)
-    test_dir/ => Provider(test_dir_provider)
+    test_dir/ => (test_middleware) Provider(test_dir_provider)
 }
 `);
 
@@ -20,6 +20,12 @@ router.register_provider("hello_world_provider", ctx => {
 router.register_provider("test_dir_provider", ctx => {
     console.log("[+] Calling into test_dir_provider, context:");
     console.log(ctx);
+});
+
+router.register_middleware("test_middleware", ctx => {
+    console.log("[+] Calling into test_middleware, context:");
+    console.log(ctx);
+    return;
 });
 
 router.dispatch("/hello_world", {

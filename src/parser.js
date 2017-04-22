@@ -5,7 +5,8 @@ const TOKEN_TYPES = {
     RESOURCE: 3,
     NEWLINE: 4,
     BLOCK_OPEN: 5,
-    BLOCK_CLOSE: 6
+    BLOCK_CLOSE: 6,
+    MIDDLEWARE: 7
 };
 
 export class Token {
@@ -35,6 +36,7 @@ export class ASTNode {
         }
         this.name = name;
         this.resource = null;
+        this.middlewares = [];
         this.children = [];
         //this.parent = parent;
     }
@@ -58,6 +60,7 @@ export function parse(input) {
 function do_parse(current, tokens) {
     let state = 0;
     let current_name = "";
+    let child_node = null;
 
     while(tokens.length) {
         const token = tokens.shift();
@@ -70,17 +73,20 @@ function do_parse(current, tokens) {
                     throw new Error("Expecting path");
                 }
                 current_name = token.description;
+                child_node = current.create_child(current_name);
                 state = 1;
                 break;
 
             case 1:
                 if(token.type == "DELIMITER") {
-                    continue;
+                    break;
+                } else if(token.type == "MIDDLEWARE") {
+                    child_node.middlewares.push(token.description);
+                    break;
                 } else if(token.type == "RESOURCE") {
-                    const child = current.create_child(current_name);
-                    child.resource = token.description;
+                    child_node.resource = token.description;
                 } else if(token.type == "BLOCK_OPEN") {
-                    do_parse(current.create_child(current_name), tokens);
+                    do_parse(child_node, tokens);
                 } else {
                     throw new Error("Unexpected token type: " + token.type);
                 }
@@ -153,6 +159,9 @@ export function tokenize(input) {
                 if(ch == '{') {
                     tokens.push(new Token("BLOCK_OPEN"));
                     state = -1;
+                } else if(ch == '(') {
+                    buf = "";
+                    state = 6;
                 } else {
                     state = 4;
                     buf += ch;
@@ -177,6 +186,16 @@ export function tokenize(input) {
                     tokens.push(new Token("RESOURCE", new Resource(resource_type, buf)));
                     buf = "";
                     state = -1;
+                } else {
+                    buf += ch;
+                }
+                break;
+            
+            case 6:
+                if(ch == ')') {
+                    tokens.push(new Token("MIDDLEWARE", buf));
+                    buf = "";
+                    state = 3;
                 } else {
                     buf += ch;
                 }

@@ -17,6 +17,7 @@ export class Router {
     constructor(config) {
         this.root = null;
         this.providers = new Map();
+        this.middlewares = new Map();
 
         if(config instanceof parser.ASTNode) {
             this.root = config;
@@ -32,6 +33,13 @@ export class Router {
             throw new TypeError("register_provider: Invalid types for arguments");
         }
         this.providers.set(name, fn);
+    }
+
+    register_middleware(name, fn) {
+        if(typeof(name) != "string" || typeof(fn) != "function") {
+            throw new TypeError("register_middleware: Invalid types for arguments");
+        }
+        this.middlewares.set(name, fn);
     }
 
     dispatch(url, context) {
@@ -80,6 +88,8 @@ export class Router {
             return null;
         }
 
+        let resource_fn = null;
+
         switch(node.resource.type) {
             case "Provider": {
                 const fn = this.providers.get(node.resource.name);
@@ -87,12 +97,22 @@ export class Router {
                     //throw new Error("handle_resource: Provider not found: " + node.resource.name);
                     return null;
                 }
-                return fn;
+                resource_fn = fn;
             }
-            //break;
+            break;
 
             default:
             throw new TypeError("handle_resource: Unknown resource type: " + node.resource.type);
         }
+
+        const ret = async ctx => {
+            for(const mw of node.middlewares) {
+                const h = this.middlewares.get(mw);
+                if(h) await h(ctx);
+            }
+            if(resource_fn) await resource_fn(ctx);
+        };
+
+        return ret;
     }
 };
