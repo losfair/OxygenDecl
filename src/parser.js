@@ -38,7 +38,7 @@ export class ASTNode {
         this.resource = null;
         this.middlewares = [];
         this.children = [];
-        //this.parent = parent;
+        this.parent = parent;
     }
 
     create_child(name = "") {

@@ -106,7 +106,17 @@ export class Router {
         }
 
         const ret = async ctx => {
-            for(const mw of node.middlewares) {
+            let c = node;
+            let middlewares = [];
+
+            while(c) {
+                c.middlewares.reverse().forEach(v => middlewares.push(v));
+                c = c.parent;
+            }
+
+            middlewares = middlewares.reverse();
+
+            for(const mw of middlewares) {
                 const h = this.middlewares.get(mw);
                 if(h) await h(ctx);
             }

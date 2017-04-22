@@ -3,7 +3,10 @@ import { Router } from "./router.js";
 const router = new Router(`
 / => {
     hello_world => Provider(hello_world_provider)
-    test_dir/ => (test_middleware) Provider(test_dir_provider)
+    test_dir/ => (test_middleware_1) {
+        default/ => (test_middleware_2) (test_middleware_3) Provider(test_dir_default_provider)
+        a => Provider(test_dir_a_provider)
+    }
 }
 `);
 
@@ -17,13 +20,30 @@ router.register_provider("hello_world_provider", ctx => {
     }
 });
 
-router.register_provider("test_dir_provider", ctx => {
-    console.log("[+] Calling into test_dir_provider, context:");
+router.register_provider("test_dir_default_provider", ctx => {
+    console.log("[+] Calling into test_dir_default_provider, context:");
     console.log(ctx);
 });
 
-router.register_middleware("test_middleware", ctx => {
-    console.log("[+] Calling into test_middleware, context:");
+router.register_provider("test_dir_a_provider", ctx => {
+    console.log("[+] Calling into test_dir_a_provider, context:");
+    console.log(ctx);
+});
+
+router.register_middleware("test_middleware_1", ctx => {
+    console.log("[+] Calling into test_middleware_1, context:");
+    console.log(ctx);
+    return;
+});
+
+router.register_middleware("test_middleware_2", ctx => {
+    console.log("[+] Calling into test_middleware_2, context:");
+    console.log(ctx);
+    return;
+});
+
+router.register_middleware("test_middleware_3", ctx => {
+    console.log("[+] Calling into test_middleware_3, context:");
     console.log(ctx);
     return;
 });
@@ -32,10 +52,10 @@ router.dispatch("/hello_world", {
     value: random_value
 });
 
-router.dispatch("/test_dir/a", {
+router.dispatch("/test_dir/default/a", {
     value: random_value
 });
 
-router.dispatch("/test_dir/b", {
+router.dispatch("/test_dir/a", {
     value: random_value
 });
