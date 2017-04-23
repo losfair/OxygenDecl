@@ -24,6 +24,7 @@ class URLCacheItem {
 export class Router {
     constructor(config) {
         this.root = null;
+        this.resource_handlers = new Map();
         this.providers = new Map();
         this.middlewares = new Map();
         this.max_url_cache_size = 100;
@@ -37,6 +38,13 @@ export class Router {
         } else {
             throw new TypeError("Invalid type for router config");
         }
+    }
+
+    register_resource_handler(name, fn) {
+        if(typeof(name) != "string" || typeof(fn) != "function") {
+            throw new TypeError("register_resource_handler: Invalid types for arguments");
+        }
+        this.resource_handlers.set(name, fn);
     }
 
     register_provider(name, fn) {
@@ -144,8 +152,13 @@ export class Router {
             }
             break;
 
-            default:
-            throw new TypeError("handle_resource: Unknown resource type: " + node.resource.type);
+            default: {
+                const fn = this.resource_handlers.get(node.resource.type);
+                if(!fn) {
+                    throw new TypeError("handle_resource: No handler found for " + node.resource.type);
+                }
+                resource_fn = ctx => fn(node.resource.name, ctx);
+            }
         }
 
         const ret = async ctx => {
