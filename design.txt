@@ -2,4 +2,9 @@
 	a => Provider(Alice)
 	b/ => (test_middleware) Provider(Bob)
 	c/ => Static(some_path)
+	d/ => {
+		1 => Provider(Alice)
+		2 => Provider(Bob)
+	}
+	e/ => Static(some_path)
 }

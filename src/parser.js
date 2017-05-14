@@ -121,6 +121,10 @@ export function tokenize(input) {
                 if(ch == '\n' || is_space(ch)) {
                     break;
                 }
+                if(ch == '}') {
+                    tokens.push(new Token("BLOCK_CLOSE"));
+                    break;
+                }
                 buf += ch;
                 state = 0;
                 break;
